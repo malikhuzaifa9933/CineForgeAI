@@ -39,18 +39,23 @@ jobs:
 
           APP_GRADLE="$PROJECT_DIR/app/build.gradle.kts"
 
-          if [ -f "$APP_GRADLE" ]; then
-            echo "Updating JVM targets in $APP_GRADLE"
+          cat >> "$APP_GRADLE" <<'EOF'
 
-            sed -i 's/JavaVersion\.VERSION_1_8/JavaVersion.VERSION_17/g' "$APP_GRADLE"
-            sed -i 's/jvmTarget = ["'\'']1\.8["'\'']/jvmTarget = "17"/g' "$APP_GRADLE"
-            sed -i 's/jvmTarget = ["'\'']8["'\'']/jvmTarget = "17"/g' "$APP_GRADLE"
+          android {
+              compileOptions {
+                  sourceCompatibility = JavaVersion.VERSION_17
+                  targetCompatibility = JavaVersion.VERSION_17
+              }
+          }
 
-            echo "JVM target fix applied."
-          else
-            echo "ERROR: app/build.gradle.kts not found!"
-            exit 1
-          fi
+          tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+              compilerOptions {
+                  jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+              }
+          }
+          EOF
+
+          echo "JVM 17 configuration added."
 
       - name: Build Debug APK
         run: |
