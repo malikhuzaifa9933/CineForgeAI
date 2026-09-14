@@ -32,6 +32,26 @@ jobs:
         with:
           gradle-version: "8.9"
 
+      - name: Fix JVM target
+        run: |
+          PROJECT_DIR=$(dirname "$(find project -name settings.gradle.kts -o -name settings.gradle | head -1)")
+          echo "Gradle project found at: $PROJECT_DIR"
+
+          APP_GRADLE="$PROJECT_DIR/app/build.gradle.kts"
+
+          if [ -f "$APP_GRADLE" ]; then
+            echo "Updating JVM targets in $APP_GRADLE"
+
+            sed -i 's/JavaVersion\.VERSION_1_8/JavaVersion.VERSION_17/g' "$APP_GRADLE"
+            sed -i 's/jvmTarget = ["'\'']1\.8["'\'']/jvmTarget = "17"/g' "$APP_GRADLE"
+            sed -i 's/jvmTarget = ["'\'']8["'\'']/jvmTarget = "17"/g' "$APP_GRADLE"
+
+            echo "JVM target fix applied."
+          else
+            echo "ERROR: app/build.gradle.kts not found!"
+            exit 1
+          fi
+
       - name: Build Debug APK
         run: |
           PROJECT_DIR=$(dirname "$(find project -name settings.gradle.kts -o -name settings.gradle | head -1)")
